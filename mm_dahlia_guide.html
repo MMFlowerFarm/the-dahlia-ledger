@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Dahlia Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:#FFFBF9;}
+:root{
+  --rose:#8B3A52;--rose-light:#F5E8EC;--rose-mid:#C4607A;--rose-pale:#FAF2F5;
+  --ink:#1C1410;--mist:#F7F4F2;--warm-border:rgba(139,58,82,0.15);
+  --serif:'Playfair Display',Georgia,serif;--body:'DM Sans',sans-serif;
+  --radius:12px;--radius-lg:16px;
+}
+body{font-family:var(--body);color:var(--ink);min-height:100vh;}
+.app{max-width:900px;margin:0 auto;padding:0 0 60px;}
+.view{display:none;}
+.view.active{display:block;}
+.inner{padding:0 32px;}
+
+/* ── GALLERY ── */
+.g-header{padding:28px 32px 22px;border-bottom:1px solid var(--warm-border);margin-bottom:26px;display:flex;align-items:flex-end;justify-content:space-between;}
+.g-wordmark{font-family:var(--serif);font-size:24px;font-weight:400;color:var(--rose);letter-spacing:0.01em;line-height:1;}
+.g-sub{font-family:var(--body);font-size:12px;color:var(--rose-mid);letter-spacing:0.08em;text-transform:uppercase;margin-top:5px;}
+.btn-new{display:flex;align-items:center;gap:7px;padding:10px 20px;background:var(--rose);color:#fff;border:none;border-radius:40px;font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;letter-spacing:0.02em;transition:background .2s;}
+.btn-new:hover{background:var(--rose-mid);}
+
+.search-wrap{position:relative;margin-bottom:16px;}
+.search-wrap .si{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--rose-mid);font-size:16px;pointer-events:none;}
+.search-wrap input{width:100%;padding:11px 14px 11px 40px;border:1px solid var(--warm-border);border-radius:40px;background:#fff;font-family:var(--body);font-size:13px;color:var(--ink);outline:none;transition:border-color .2s;}
+.search-wrap input:focus{border-color:var(--rose-mid);}
+.search-wrap input::placeholder{color:#ccc;}
+
+.filters{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+.fchip{padding:7px 18px;border-radius:40px;font-size:12px;font-family:var(--body);border:1px solid var(--warm-border);background:transparent;color:#999;cursor:pointer;letter-spacing:0.03em;transition:all .2s;}
+.fchip.on{background:var(--rose-light);color:var(--rose);border-color:transparent;font-weight:500;}
+.fchip:hover:not(.on){background:var(--rose-pale);color:var(--rose-mid);}
+.g-count{font-size:11px;color:#bbb;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:18px;}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px;}
+.pcard{background:#fff;border:1px solid rgba(139,58,82,0.1);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s;}
+.pcard:hover{border-color:var(--rose-mid);transform:translateY(-3px);box-shadow:0 8px 24px rgba(139,58,82,0.1);}
+.pcard-img{height:150px;background:var(--rose-pale);display:flex;align-items:center;justify-content:center;color:#E8C4CF;font-size:38px;overflow:hidden;}
+.pcard-img img{width:100%;height:150px;object-fit:cover;}
+.pcard-body{padding:13px 15px 15px;}
+.pcard-name{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--ink);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pcard-sub{font-size:11px;color:#aaa;line-height:1.4;}
+.pcard-color{display:flex;align-items:center;gap:5px;margin-top:9px;}
+.cdot{width:11px;height:11px;border-radius:50%;border:1px solid rgba(0,0,0,0.1);flex-shrink:0;display:inline-block;vertical-align:middle;}
+.pcard-color span{font-size:11px;color:#999;}
+.badge-hybrid{display:inline-flex;align-items:center;gap:3px;margin-top:9px;padding:3px 10px;border-radius:40px;background:var(--rose-light);color:var(--rose);font-size:10px;font-weight:500;letter-spacing:0.04em;}
+.empty-wrap{grid-column:1/-1;text-align:center;padding:5rem 1rem;}
+.empty-icon{font-size:44px;color:#e8d8dc;display:block;margin-bottom:14px;}
+.empty-wrap p{font-size:14px;color:#ccc;line-height:1.8;}
+.empty-cta{display:inline-flex;align-items:center;gap:6px;margin-top:18px;padding:10px 22px;background:var(--rose-pale);color:var(--rose);border:1px solid var(--warm-border);border-radius:40px;font-family:var(--body);font-size:13px;cursor:pointer;transition:background .2s;}
+.empty-cta:hover{background:var(--rose-light);}
+
+/* ── FORM ── */
+.f-topbar{display:flex;align-items:center;gap:12px;padding:22px 32px 20px;border-bottom:1px solid var(--warm-border);margin-bottom:0;position:sticky;top:0;background:#FFFBF9;z-index:10;}
+.f-back{background:none;border:none;cursor:pointer;color:#ccc;font-size:22px;display:flex;align-items:center;padding:4px;border-radius:8px;transition:color .2s;}
+.f-back:hover{color:var(--rose);}
+.f-heading{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--ink);flex:1;}
+.btn-save{padding:10px 24px;background:var(--rose);color:#fff;border:none;border-radius:40px;font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;transition:background .2s;}
+.btn-save:hover{background:var(--rose-mid);}
+.btn-cancel{padding:10px 18px;background:none;border:1px solid var(--warm-border);color:#bbb;border-radius:40px;font-family:var(--body);font-size:13px;cursor:pointer;transition:all .2s;}
+.btn-cancel:hover{border-color:#ccc;color:#888;}
+
+.f-body{padding:30px 32px 0;}
+.f-section{font-family:var(--serif);font-size:14px;font-weight:400;color:var(--rose);letter-spacing:0.04em;margin:30px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--warm-border);}
+.f-section:first-child{margin-top:0;}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.f-row.full{grid-template-columns:1fr;}
+.fg{display:flex;flex-direction:column;gap:6px;}
+.fg label{font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#bbb;}
+.fg input,.fg select,.fg textarea{font-family:var(--body);font-size:13px;width:100%;border:1px solid rgba(139,58,82,0.15);border-radius:9px;padding:10px 13px;background:#fff;color:var(--ink);outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--rose-mid);}
+.fg textarea{resize:vertical;min-height:70px;line-height:1.6;}
+
+.photo-zone{border:1.5px dashed rgba(139,58,82,0.25);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;position:relative;background:var(--rose-pale);transition:background .2s;}
+.photo-zone:hover{background:var(--rose-light);}
+.photo-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.photo-zone .pz-icon{font-size:26px;color:var(--rose-mid);display:block;margin-bottom:7px;}
+.photo-zone .pz-label{font-size:13px;color:var(--rose-mid);font-weight:500;}
+.photo-zone .pz-hint{font-size:11px;color:#ccc;margin-top:4px;}
+.photo-preview-img{width:100%;height:150px;object-fit:cover;border-radius:8px;display:block;margin-bottom:7px;}
+
+.tog-row{display:flex;align-items:center;justify-content:space-between;background:var(--rose-pale);border:1px solid var(--warm-border);border-radius:var(--radius);padding:16px 18px;margin:26px 0 0;}
+.tog-label{font-family:var(--serif);font-size:16px;color:var(--ink);}
+.tog-hint{font-size:11px;color:#bbb;margin-top:4px;}
+.tog{position:relative;width:46px;height:26px;flex-shrink:0;}
+.tog input{opacity:0;position:absolute;width:0;height:0;}
+.tog-track{position:absolute;inset:0;background:#ddd;border-radius:20px;cursor:pointer;transition:background .25s;}
+.tog input:checked+.tog-track{background:var(--rose);}
+.tog-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;pointer-events:none;transition:transform .25s;box-shadow:0 1px 3px rgba(0,0,0,0.15);}
+.tog input:checked~.tog-thumb{transform:translateX(20px);}
+
+.hybrid-block{background:var(--rose-pale);border:1px solid var(--warm-border);border-radius:var(--radius-lg);padding:22px;margin-top:16px;}
+.hybrid-block .f-section{margin-top:0;}
+
+.f-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:36px;padding:22px 32px;border-top:1px solid var(--warm-border);}
+
+/* ── DETAIL ── */
+.d-topbar{display:flex;align-items:center;gap:10px;padding:22px 32px 20px;border-bottom:1px solid var(--warm-border);position:sticky;top:0;background:#FFFBF9;z-index:10;}
+.d-name{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--ink);flex:1;}
+.d-action{background:none;border:none;cursor:pointer;color:#ccc;font-size:20px;padding:6px;border-radius:9px;display:flex;align-items:center;transition:all .2s;}
+.d-action:hover{color:var(--rose);background:var(--rose-pale);}
+.d-danger:hover{color:#C0392B;background:#FDEEEE;}
+.d-body{padding:26px 32px;}
+
+.d-hero{width:100%;height:220px;object-fit:cover;border-radius:var(--radius-lg);display:block;margin-bottom:22px;}
+.d-hero-empty{height:130px;background:var(--rose-pale);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;color:#E8C4CF;font-size:48px;margin-bottom:22px;}
+.d-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.df{background:var(--mist);border-radius:10px;padding:12px 14px;}
+.df-label{font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:#ccc;margin-bottom:4px;}
+.df-val{font-size:13px;font-weight:500;color:var(--ink);}
+.note-block{background:var(--mist);border-radius:10px;padding:12px 14px;font-size:13px;color:#666;line-height:1.7;margin-bottom:10px;}
+.d-section{font-family:var(--serif);font-size:13px;color:var(--rose);letter-spacing:0.05em;margin:22px 0 13px;padding-bottom:8px;border-bottom:1px solid var(--warm-border);}
+.hyb-wrap{background:var(--rose-pale);border:1px solid var(--warm-border);border-radius:var(--radius-lg);padding:20px;margin-top:22px;}
+.hyb-wrap .d-section{margin-top:0;}
+
+@media(max-width:600px){
+  .inner,.f-body,.d-body{padding-left:18px;padding-right:18px;}
+  .g-header,.f-topbar,.d-topbar,.f-actions{padding-left:18px;padding-right:18px;}
+  .f-row{grid-template-columns:1fr;}
+  .d-grid{grid-template-columns:1fr;}
+  .g-wordmark{font-size:20px;}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<div class="view active" id="v-gallery">
+  <div class="g-header">
+    <div>
+      <div class="g-wordmark">The Dahlia Ledger</div>
+      <div class="g-sub">M&amp;M Flower Farm</div>
+    </div>
+    <button class="btn-new" onclick="goForm(null)"><i class="ti ti-plus" aria-hidden="true"></i> Add cultivar</button>
+  </div>
+  <div class="inner">
+    <div class="search-wrap">
+      <i class="ti ti-search si" aria-hidden="true"></i>
+      <input id="q" type="text" placeholder="Search by name, color, form..." oninput="render()">
+    </div>
+    <div class="filters">
+      <button class="fchip on" onclick="setF('all',this)">All</button>
+      <button class="fchip" onclick="setF('purchased',this)">Purchased</button>
+      <button class="fchip" onclick="setF('hybrid',this)">My hybrids</button>
+    </div>
+    <div class="g-count" id="cnt"></div>
+    <div class="grid" id="gallery"></div>
+  </div>
+</div>
+
+<div class="view" id="v-form">
+  <div class="f-topbar">
+    <button class="f-back" onclick="goGallery()" aria-label="Back to gallery"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="f-heading" id="f-title">Add cultivar</div>
+    <button class="btn-cancel" onclick="goGallery()">Cancel</button>
+    <button class="btn-save" onclick="saveCultivar()">Save</button>
+  </div>
+  <div class="f-body">
+    <div class="f-section">Basic information</div>
+    <div class="f-row">
+      <div class="fg"><label>Cultivar name *</label><input id="f-name" type="text" placeholder="e.g. Café au Lait"></div>
+      <div class="fg"><label>Source</label><input id="f-source" type="text" placeholder="e.g. Swan Island Dahlias"></div>
+    </div>
+    <div class="f-section">Bloom details</div>
+    <div class="f-row">
+      <div class="fg"><label>Bloom form</label><select id="f-form"><option value="">— select —</option></select></div>
+      <div class="fg"><label>Bloom size</label><select id="f-size"><option value="">— select —</option></select></div>
+    </div>
+    <div class="f-row">
+      <div class="fg"><label>Bloom quality / vase life</label><select id="f-bq"><option value="">— select —</option></select></div>
+      <div class="fg"><label>Bloom color</label><input id="f-color" type="text" placeholder="e.g. Blush pink, bi-color"></div>
+    </div>
+    <div class="f-row full">
+      <div class="fg"><label>Color notes</label><textarea id="f-cnote" placeholder="e.g. Fades to cream in heat, deepens in fall..."></textarea></div>
+    </div>
+    <div class="f-section">Plant &amp; tuber</div>
+    <div class="f-row">
+      <div class="fg"><label>Plant height</label><select id="f-height"><option value="">— select —</option></select></div>
+      <div class="fg"><label>Tuber quality</label><select id="f-tq"><option value="">— select —</option></select></div>
+    </div>
+    <div class="f-row">
+      <div class="fg"><label>Tuber storage quality</label><select id="f-tsq"><option value="">— select —</option></select></div>
+    </div>
+    <div class="f-row full">
+      <div class="fg"><label>Tuber notes</label><textarea id="f-tnote" placeholder="Storage tips, division notes, health observations..."></textarea></div>
+    </div>
+    <div class="f-section">Bloom photo</div>
+    <div class="photo-zone" id="pz-main">
+      <input type="file" accept="image/*" onchange="loadPhoto(event,'main')">
+      <i class="ti ti-camera pz-icon" aria-hidden="true"></i>
+      <div class="pz-label">Upload bloom photo</div>
+      <div class="pz-hint">Tap to browse your device</div>
+    </div>
+    <div class="tog-row">
+      <div>
+        <div class="tog-label">Hybridized by me</div>
+        <div class="tog-hint">Toggle on if this is your own seedling</div>
+      </div>
+      <label class="tog"><input type="checkbox" id="f-ishybrid" onchange="toggleH()"><span class="tog-track"></span><span class="tog-thumb"></span></label>
+    </div>
+    <div id="hybrid-fields" style="display:none;">
+      <div class="hybrid-block">
+        <div class="f-section">Seedling information</div>
+        <div class="f-row">
+          <div class="fg"><label>Seedling name</label><input id="h-sname" type="text" placeholder="e.g. MM-24-001"></div>
+          <div class="fg"><label>Mother cultivar</label><input id="h-mom" type="text" placeholder="e.g. Café au Lait"></div>
+        </div>
+        <div class="f-row">
+          <div class="fg"><label>Seedling year</label><select id="h-yr"><option value="">— select —</option><option>1st year</option><option>2nd year</option><option>3rd year</option></select></div>
+          <div class="fg"><label>Culled or kept?</label><select id="h-ck"><option value="">— select —</option><option>Kept</option><option>Culled</option></select></div>
+        </div>
+        <div class="f-section">Hybrid bloom</div>
+        <div class="f-row">
+          <div class="fg"><label>Bloom form</label><select id="h-form"><option value="">— select —</option></select></div>
+          <div class="fg"><label>Bloom size</label><select id="h-size"><option value="">— select —</option></select></div>
+        </div>
+        <div class="f-row">
+          <div class="fg"><label>Bloom quality</label><select id="h-bq"><option value="">— select —</option></select></div>
+          <div class="fg"><label>Plant height</label><select id="h-height"><option value="">— select —</option></select></div>
+        </div>
+        <div class="f-row full">
+          <div class="fg"><label>Bloom quality notes</label><textarea id="h-bqnote" placeholder="Stem strength, longevity, conditions..."></textarea></div>
+        </div>
+        <div class="f-row">
+          <div class="fg"><label>Tuber quality</label><select id="h-tq"><option value="">— select —</option></select></div>
+        </div>
+        <div class="f-row full">
+          <div class="fg"><label>Tuber notes</label><textarea id="h-tnote" placeholder="Development and storage observations..."></textarea></div>
+        </div>
+        <div class="f-section">Hybrid bloom photo</div>
+        <div class="photo-zone" id="pz-hybrid">
+          <input type="file" accept="image/*" onchange="loadPhoto(event,'hybrid')">
+          <i class="ti ti-camera pz-icon" aria-hidden="true"></i>
+          <div class="pz-label">Upload hybrid bloom photo</div>
+          <div class="pz-hint">Tap to browse your device</div>
+        </div>
+        <div class="f-row full" style="margin-top:18px;">
+          <div class="fg"><label>Miscellaneous notes</label><textarea id="h-misc" placeholder="Any other observations about this seedling..."></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="f-actions">
+    <button class="btn-cancel" onclick="goGallery()">Cancel</button>
+    <button class="btn-save" onclick="saveCultivar()">Save cultivar</button>
+  </div>
+</div>
+
+<div class="view" id="v-detail">
+  <div class="d-topbar">
+    <button class="d-action" onclick="goGallery()" aria-label="Back"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+    <div class="d-name" id="d-name"></div>
+    <button class="d-action" onclick="editCurrent()" aria-label="Edit cultivar"><i class="ti ti-edit" aria-hidden="true"></i></button>
+    <button class="d-action d-danger" onclick="deleteCurrent()" aria-label="Delete cultivar"><i class="ti ti-trash" aria-hidden="true"></i></button>
+  </div>
+  <div class="d-body" id="d-body"></div>
+</div>
+
+</div>
+
+<script>
+const FORMS=['Ball','Cactus','Decorative','Dinnerplate','Fimbriated','Laciniated','Mignon','Orchid','Peony','Pompon','Semi-cactus','Single','Stellar','Waterlily','Anemone','Collarette','Other'];
+const SIZES=['Miniature (under 2")','Small (2–4")','Medium (4–6")','Large (6–8")','Dinnerplate (8"+)'];
+const HEIGHTS=['Under 2 ft','2–3 ft','3–4 ft','4–5 ft','Over 5 ft'];
+const QUALS=['1 — Poor','2 — Below average','3 — Average','4 — Good','5 — Excellent'];
+const CMAP={red:'#E24B4A',pink:'#D4537E',rose:'#C0607A',coral:'#D85A30',orange:'#EF9F27',yellow:'#F5D327',white:'#E8E4DF',lavender:'#AFA9EC',purple:'#7F77DD',peach:'#F0997B',dark:'#534AB7',maroon:'#72243E',bronze:'#BA7517',cream:'#F5E6C8',fuchsia:'#C93690',green:'#639922',blush:'#EDAEC0',bicolor:'#D4537E'};
+
+// ── GOOGLE SHEETS STORAGE ──
+// Paste your Apps Script Web App URL below after deployment:
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4urIv-dRhwlW4tkQILsHO3eaFex53WdklyucUZN6AI9ow_bLpd5TMd5WofmqVCphs/exec';
+
+let db=[];
+let filt='all',editId=null,mainPhoto=null,hybridPhoto=null,currentId=null;
+let _saving=false;
+
+function showToast(msg,err){
+  let t=document.getElementById('gs-toast');
+  if(!t){t=document.createElement('div');t.id='gs-toast';t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 22px;border-radius:40px;font-family:var(--body);font-size:13px;color:#fff;z-index:9999;transition:opacity .4s;pointer-events:none;';document.body.appendChild(t);}
+  t.textContent=msg;t.style.background=err?'#c0392b':'#8B3A52';t.style.opacity='1';
+  clearTimeout(t._to);t._to=setTimeout(()=>{t.style.opacity='0';},2800);
+}
+
+async function loadFromSheets(){
+  try{
+    const r=await fetch(SCRIPT_URL+'?action=getAll');
+    const data=await r.json();
+    if(data.error)throw new Error(data.error);
+    db=data;
+  }catch(e){
+    showToast('Could not load data — check your Script URL.',true);
+    db=[];
+  }
+}
+
+async function save(){
+  if(_saving)return;
+  _saving=true;
+  showToast('Saving...');
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveAll',data:db})});
+    const res=await r.json();
+    if(res.error)throw new Error(res.error);
+    showToast('Saved.');
+  }catch(e){
+    showToast('Save failed. Check your Script URL.',true);
+  }finally{_saving=false;}
+}
+function show(id){['v-gallery','v-form','v-detail'].forEach(v=>document.getElementById(v).classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function goGallery(){show('v-gallery');render();}
+function setF(f,el){filt=f;document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('on'));el.classList.add('on');render();}
+function chex(s){const k=(s||'').toLowerCase().split(/[\s,\/]/)[0];return CMAP[k]||'#C4B8B0';}
+function populate(id,arr){const s=document.getElementById(id);if(!s)return;arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});}
+
+function initSelects(){
+  ['f-form','h-form'].forEach(id=>populate(id,FORMS));
+  ['f-size','h-size'].forEach(id=>populate(id,SIZES));
+  ['f-height','h-height'].forEach(id=>populate(id,HEIGHTS));
+  ['f-bq','h-bq','f-tq','h-tq'].forEach(id=>populate(id,QUALS));
+  populate('f-tsq',QUALS);
+}
+
+function render(){
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  let list=db.filter(d=>{
+    if(filt==='hybrid'&&!d.hybrid)return false;
+    if(filt==='purchased'&&d.hybrid)return false;
+    if(q&&![d.name,d.form,d.color,d.source].join(' ').toLowerCase().includes(q))return false;
+    return true;
+  });
+  document.getElementById('cnt').textContent=list.length+' cultivar'+(list.length!==1?'s':'');
+  const g=document.getElementById('gallery');
+  if(!list.length){
+    g.innerHTML='<div class="empty-wrap"><i class="ti ti-plant empty-icon" aria-hidden="true"></i><p>Your collection is empty.<br>Start building your ledger.</p><button class="empty-cta" onclick="goForm(null)"><i class="ti ti-plus" style="font-size:14px;margin-right:4px;" aria-hidden="true"></i>Add first cultivar</button></div>';
+    return;
+  }
+  g.innerHTML=list.map(d=>`
+    <div class="pcard" onclick="openDetail('${d.id}')">
+      <div class="pcard-img">${d.photo?`<img src="${d.photo}" alt="${d.name}">`:'<i class="ti ti-plant-2" aria-hidden="true"></i>'}</div>
+      <div class="pcard-body">
+        <div class="pcard-name">${d.name||'Unnamed'}</div>
+        <div class="pcard-sub">${[d.form,d.size].filter(Boolean).join(' · ')||'No details yet'}</div>
+        ${d.color?`<div class="pcard-color"><span class="cdot" style="background:${chex(d.color)};"></span><span>${d.color}</span></div>`:''}
+        ${d.hybrid?'<div class="badge-hybrid"><i class="ti ti-dna" style="font-size:10px;" aria-hidden="true"></i> my hybrid</div>':''}
+      </div>
+    </div>`).join('');
+}
+
+function goForm(d){
+  editId=d?d.id:null;mainPhoto=d?.photo||null;hybridPhoto=d?.hybridPhoto||null;
+  document.getElementById('f-title').textContent=d?'Edit cultivar':'Add cultivar';
+  const map={'f-name':d?.name||'','f-source':d?.source||'','f-form':d?.form||'','f-size':d?.size||'','f-bq':d?.bq||'','f-color':d?.color||'','f-cnote':d?.cnote||'','f-height':d?.height||'','f-tq':d?.tq||'','f-tsq':d?.tsq||'','f-tnote':d?.tnote||'','h-sname':d?.sname||'','h-mom':d?.mom||'','h-yr':d?.yr||'','h-ck':d?.ck||'','h-form':d?.hform||'','h-size':d?.hsize||'','h-bq':d?.hbq||'','h-height':d?.hheight||'','h-bqnote':d?.hbqnote||'','h-tq':d?.htq||'','h-tnote':d?.htnote||'','h-misc':d?.hmisc||''};
+  Object.entries(map).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val;});
+  const isH=!!(d?.hybrid);
+  document.getElementById('f-ishybrid').checked=isH;
+  document.getElementById('hybrid-fields').style.display=isH?'block':'none';
+  refreshPZ('pz-main',mainPhoto,'main');
+  refreshPZ('pz-hybrid',hybridPhoto,'hybrid');
+  show('v-form');
+}
+
+function refreshPZ(id,src,type){
+  const el=document.getElementById(id);if(!el)return;
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.style.cssText='position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;';
+  inp.onchange=e=>loadPhoto(e,type);
+  if(src){el.innerHTML=`<img class="photo-preview-img" src="${src}" alt="photo"><div class="pz-hint">Tap to replace</div>`;}
+  else{el.innerHTML=`<i class="ti ti-camera pz-icon" aria-hidden="true"></i><div class="pz-label">Upload ${type==='hybrid'?'hybrid bloom':'bloom'} photo</div><div class="pz-hint">Tap to browse your device</div>`;}
+  el.appendChild(inp);
+}
+
+function loadPhoto(e,type){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{if(type==='main'){mainPhoto=ev.target.result;refreshPZ('pz-main',mainPhoto,'main');}else{hybridPhoto=ev.target.result;refreshPZ('pz-hybrid',hybridPhoto,'hybrid');}};
+  r.readAsDataURL(f);
+}
+
+function toggleH(){document.getElementById('hybrid-fields').style.display=document.getElementById('f-ishybrid').checked?'block':'none';}
+function gv(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+
+function saveCultivar(){
+  const name=gv('f-name');if(!name){alert('Please enter a cultivar name.');return;}
+  const entry={id:editId||Date.now().toString(),name,source:gv('f-source'),form:gv('f-form'),size:gv('f-size'),bq:gv('f-bq'),color:gv('f-color'),cnote:gv('f-cnote'),height:gv('f-height'),tq:gv('f-tq'),tsq:gv('f-tsq'),tnote:gv('f-tnote'),photo:mainPhoto,hybrid:document.getElementById('f-ishybrid').checked,sname:gv('h-sname'),mom:gv('h-mom'),yr:gv('h-yr'),ck:gv('h-ck'),hform:gv('h-form'),hsize:gv('h-size'),hbq:gv('h-bq'),hheight:gv('h-height'),hbqnote:gv('h-bqnote'),htq:gv('h-tq'),htnote:gv('h-tnote'),hybridPhoto,hmisc:gv('h-misc')};
+  if(editId){db=db.map(x=>x.id===editId?entry:x);}else{db.push(entry);}
+  save();goGallery();
+}
+
+function field(label,val){return `<div class="df"><div class="df-label">${label}</div><div class="df-val">${val||'—'}</div></div>`;}
+
+function openDetail(id){
+  currentId=id;const d=db.find(x=>x.id===id);if(!d)return;
+  document.getElementById('d-name').textContent=d.name;
+  let h='';
+  if(d.photo)h+=`<img class="d-hero" src="${d.photo}" alt="${d.name}">`;
+  else h+=`<div class="d-hero-empty"><i class="ti ti-plant-2" aria-hidden="true"></i></div>`;
+  h+=`<div class="d-section">Bloom details</div><div class="d-grid">${field('Bloom form',d.form)}${field('Bloom size',d.size)}${field('Bloom quality',d.bq)}<div class="df"><div class="df-label">Bloom color</div><div class="df-val">${d.color?`<span class="cdot" style="background:${chex(d.color)};margin-right:6px;"></span>${d.color}`:'—'}</div></div></div>`;
+  if(d.cnote)h+=`<div class="note-block">${d.cnote}</div>`;
+  h+=`<div class="d-section">Plant &amp; tuber</div><div class="d-grid">${field('Plant height',d.height)}${field('Tuber quality',d.tq)}${field('Tuber storage',d.tsq)}${field('Source',d.source)}</div>`;
+  if(d.tnote)h+=`<div class="note-block">${d.tnote}</div>`;
+  if(d.hybrid){
+    h+=`<div class="hyb-wrap"><div class="d-section">My hybrid details</div><div class="d-grid">${field('Seedling name',d.sname)}${field('Mother cultivar',d.mom)}${field('Seedling year',d.yr)}${field('Status',d.ck)}</div><div class="d-grid">${field('Bloom form',d.hform)}${field('Bloom size',d.hsize)}${field('Bloom quality',d.hbq)}${field('Plant height',d.hheight)}${field('Tuber quality',d.htq)}</div>`;
+    if(d.hbqnote)h+=`<div class="note-block">${d.hbqnote}</div>`;
+    if(d.htnote)h+=`<div class="note-block">${d.htnote}</div>`;
+    if(d.hybridPhoto)h+=`<img src="${d.hybridPhoto}" style="width:100%;height:170px;object-fit:cover;border-radius:12px;margin:12px 0;" alt="Hybrid bloom">`;
+    if(d.hmisc)h+=`<div class="note-block">${d.hmisc}</div>`;
+    h+=`</div>`;
+  }
+  document.getElementById('d-body').innerHTML=h;
+  show('v-detail');
+}
+
+function editCurrent(){const d=db.find(x=>x.id===currentId);if(d)goForm(d);}
+function deleteCurrent(){if(!confirm('Delete this cultivar? This cannot be undone.'))return;db=db.filter(x=>x.id!==currentId);save();goGallery();}
+
+initSelects();
+(async()=>{
+  showToast('Loading your dahlias...');
+  await loadFromSheets();
+  render();
+})();
+</script>
+</body>
+</html>
