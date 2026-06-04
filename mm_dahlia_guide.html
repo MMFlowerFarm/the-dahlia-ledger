@@ -277,7 +277,7 @@ const CMAP={red:'#E24B4A',pink:'#D4537E',rose:'#C0607A',coral:'#D85A30',orange:'
 
 // ── GOOGLE SHEETS STORAGE ──
 // Paste your Apps Script Web App URL below after deployment:
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyazuVEAdgNLFjmHx3Opxbhn2yhb4G5sVeP4LHaoN7x9EWlxK-NzhkAbmUcwdsvG3OR/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyiwctOMzo45pSlnLbYMNF9mGl30pPOkkJse5iaHEkJB0hs48LIM_QXEXl9B9XOt89/exec';
 
 let db=[];
 let filt='all',editId=null,mainPhoto=null,hybridPhoto=null,currentId=null;
@@ -307,7 +307,8 @@ async function save(){
   _saving=true;
   showToast('Saving...');
   try{
-    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveAll',data:db})});
+    const encoded=encodeURIComponent(JSON.stringify(db));
+    const r=await fetch(SCRIPT_URL+'?action=saveAll&data='+encoded);
     const res=await r.json();
     if(res.error)throw new Error(res.error);
     showToast('Saved.');
